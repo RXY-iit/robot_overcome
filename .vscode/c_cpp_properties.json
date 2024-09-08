@@ -1,0 +1,40 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/ruan-x/urg_ws/devel/include/**",
+        "/home/ruan-x/workSpace_R/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/ruan-x/workSpace_R/src/cirkit_waypoint_manager/cirkit_waypoint_navigator/include/**",
+        "/home/ruan-x/urg_ws/src/hokuyo_node/include/**",
+        "/home/ruan-x/midTask/src/keyboard_acq/include/**",
+        "/home/ruan-x/workSpace_R/src/midtask_rxy/include/**",
+        "/home/ruan-x/workSpace_R/src/odomtest/include/**",
+        "/home/ruan-x/workSpace_R/src/package_rxy/include/**",
+        "/home/ruan-x/workSpace_R/src/scan_recorder/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_bullet/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_eigen/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_geometry_msgs/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_kdl/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_msgs/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_ros/include/**",
+        "/home/ruan-x/workSpace_R/src/geometry2/tf2_sensor_msgs/include/**",
+        "/home/ruan-x/workSpace_R/src/waypoint_following/include/**",
+        "/home/ruan-x/workSpace_R/src/yamasemi_tf2/include/**",
+        "/home/ruan-x/workSpace_R/src/yolov8test_pkg/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
