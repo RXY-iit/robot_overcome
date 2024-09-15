@@ -153,14 +153,15 @@ void get_obj_data()
 
     // Two point found flag
     if (found1) {
-        ROS_INFO("Obs found");
+        // ROS_INFO("Obs found");
         get_obs_flag = true;
-        std::cout << "P1:(dis,angle):" << min_distance1 << ", " << angle_of_closest1 << std::endl;
+        // std::cout << "P1:(dis,angle):" << min_distance1 << ", " << angle_of_closest1 << std::endl;
     } else {
-        ROS_INFO("Obs not found");
+        // ROS_INFO("Obs not found");
         get_obs_flag = false;
     }
 }
+
 
 int near_position(geometry_msgs::PoseStamped goal)
 {
@@ -175,7 +176,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::Subscriber odom_sub = nh.subscribe("ypspur_ros/odom", 100, odom_callback);
     ros::Subscriber scan_sub = nh.subscribe("scan", 100, scanCallback);
-    ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("ypspur_ros/cmd_vel", 10);
+    ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel_source_normal", 10);
 
     int wait_start = 2;
     ros::Time ros_start_time = ros::Time::now();

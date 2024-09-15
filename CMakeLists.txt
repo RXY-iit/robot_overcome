@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  message_generation  # Add this for service and message generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -103,11 +104,25 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+
+## Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  openai_test.srv
+)
+## Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES midtask_rxy
 #  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
+CATKIN_DEPENDS message_runtime std_msgs
 )
 
 ###########
@@ -207,4 +222,10 @@ include_directories(
 # catkin_add_nosetests(test)
 add_executable(openai_task_node src/openai_task.cpp)
 target_link_libraries(openai_task_node ${catkin_LIBRARIES})
+add_executable(dynamic_openai_node src/dynamic_openai_task.cpp)
+target_link_libraries(dynamic_openai_node ${catkin_LIBRARIES})
+
+add_executable(cmd_vel_mux src/cmd_vel_mux.cpp)
+target_link_libraries(cmd_vel_mux ${catkin_LIBRARIES})
+
 

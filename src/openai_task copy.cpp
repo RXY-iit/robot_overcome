@@ -107,6 +107,7 @@ void follow_line(double x, double y, double th)
 }
 
 
+
 void get_obj_data()
 {
     if (scan.ranges.empty()) // Ensure scan data is available
@@ -114,40 +115,34 @@ void get_obj_data()
         ROS_WARN("Scan data is empty!");
         return;
     }
-	// upada objects obstacle data in world
-	double min_distance1 = std::numeric_limits<double>::infinity();
-	double angle_of_closest1;
-	bool found1 = false;
 
-	int min_index = (scan.angle_min + M_PI / 6.0) / scan.angle_increment;
-    int max_index = (scan.angle_max - M_PI / 6.0) / scan.angle_increment;
+    // Initialize variables for obstacle detection
+    double min_distance1 = std::numeric_limits<double>::infinity();
+    double angle_of_closest1;
+    bool found1 = false;
 
-    for (int i = min_index; i <= max_index; ++i) {
-	// for (int i = 0; i < scan.ranges.size(); ++i) {
-		double distance1 = scan.ranges[i];
-		// std::cout << "dis1 now = " << distance1 << std::endl;
-		if (distance1 >= 0.2 && distance1 < 0.5) {
-        // if (distance1 < 0.3) {
-			if (distance1 < min_distance1) {
-				min_distance1 = distance1;
-				angle_of_closest1 = scan.angle_min + i * scan.angle_increment;
-				// std::cout << "P1:(dis,angle):" << min_distance1 << ", " << angle_of_closest1 << std::endl;
-				found1 = true;
-			}
-		}
-	}
-
-	//two point found flag
-	
-	if (found1) {
-        // ROS_INFO("Obs found");
-		get_obs_flag = true;
-
-	}else{
-        // ROS_INFO("Obs not found found");
-        get_obs_flag = false;
+    // Scan through the range around the center
+    for (int i = (scan.ranges.size())/3; i < (scan.ranges.size())*2/3; ++i) {
+    // for (int i = min_index; i <= max_index; ++i) {
+        double distance1 = scan.ranges[i];
+        if (distance1 >= 0.2 && distance1 < 0.5) {
+            if (distance1 < min_distance1) {
+                min_distance1 = distance1;
+                angle_of_closest1 = scan.angle_min + i * scan.angle_increment;
+                found1 = true;
+            }
+        }
     }
 
+    // Two point found flag
+    if (found1) {
+        ROS_INFO("Obs found");
+        get_obs_flag = true;
+        std::cout << "P1:(dis,angle):" << min_distance1 << ", " << angle_of_closest1 << std::endl;
+    } else {
+        ROS_INFO("Obs not found");
+        get_obs_flag = false;
+    }
 }
 
 int near_position(geometry_msgs::PoseStamped goal)

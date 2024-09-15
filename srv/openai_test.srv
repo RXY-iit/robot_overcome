@@ -1,0 +1,6 @@
+# Request
+string topic
+
+---
+# Response
+bool success
