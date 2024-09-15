@@ -225,6 +225,9 @@ target_link_libraries(openai_task_node ${catkin_LIBRARIES})
 add_executable(dynamic_openai_node src/dynamic_openai_task.cpp)
 target_link_libraries(dynamic_openai_node ${catkin_LIBRARIES})
 
+add_executable(dynamic_gpt_new src/dynamic_gpt_new.cpp)
+target_link_libraries(dynamic_gpt_new ${catkin_LIBRARIES})
+
 add_executable(cmd_vel_mux src/cmd_vel_mux.cpp)
 target_link_libraries(cmd_vel_mux ${catkin_LIBRARIES})
 

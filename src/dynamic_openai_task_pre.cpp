@@ -255,8 +255,6 @@ int main(int argc, char **argv)
     double y = 0.0;
     double theta = 0.0;
     bool obstacle_detected = false;
-    bool first_time = true;
-    bool first_arrive=true;
 
     // Final Goal
     goal.pose.position.x = 5.0;
@@ -313,16 +311,12 @@ int main(int argc, char **argv)
             }
             else
             {
-                // Check if stop duration exceeds 20 seconds
+                // Check if stop duration exceeds 30 seconds
                 auto stop_duration = std::chrono::steady_clock::now() - stop_start_time;
-                if (std::chrono::duration_cast<std::chrono::seconds>(stop_duration).count() > 20)
+                if (std::chrono::duration_cast<std::chrono::seconds>(stop_duration).count() > 30)
                 {
-                    if (first_time){
-                        ROS_WARN("Robot stop timeout");
-                        ROS_WARN("Robot Current Position: (%.2f, %.2f)", robot_x, robot_y);
-                        first_time=false;
-                    }
-
+                    ROS_WARN("Robot stop timeout");
+                    ROS_WARN("Robot Current Position: (%.2f, %.2f)", robot_x, robot_y);
                 }
             }
 
@@ -339,10 +333,7 @@ int main(int argc, char **argv)
         {
             twist.linear.x = 0.0;
             twist.angular.z = 0.0;
-            if (first_arrive){
-                ROS_INFO("Arrived at goal.");
-                first_arrive=false;
-            }
+            ROS_INFO("Arrived at goal.");
         }
 
         twist_pub.publish(twist);

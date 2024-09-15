@@ -1,4 +1,4 @@
- #include <ros/ros.h>
+#include <ros/ros.h>
 #include <geometry_msgs/PoseWithCovariance.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <chrono> // Added for time tracking
+#include <chrono>
 
 // Current position obtained from odometry
 double robot_x, robot_y;
@@ -17,12 +17,13 @@ double roll, pitch, yaw;
 bool get_obs_flag = false;  // Flag to get obstacle data
 // Laser scan data
 sensor_msgs::LaserScan scan;
+bool scan_received = false; // Flag to check if scan data is received
 // Odometry robot rotation data
 geometry_msgs::Quaternion robot_r;
 // Final goal data
 geometry_msgs::PoseStamped goal;
-// Obstacle point1, point2
-geometry_msgs::Point point1, point2;
+// Obstacle point
+geometry_msgs::Point obstacle_point;
 
 // Rotation
 int flag = 0, count = 0;
@@ -50,17 +51,8 @@ void odom_callback(const nav_msgs::Odometry::ConstPtr &msg)
 // Laser scan callback
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan_)
 {
-    float nandeyanen = scan_->range_max;
-    scan.header = scan_->header;
-    scan.angle_min = scan_->angle_min;
-    scan.angle_max = scan_->angle_max;
-    scan.angle_increment = scan_->angle_increment;
-    scan.time_increment = scan_->time_increment;
-    scan.scan_time = scan_->scan_time;
-    scan.range_min = scan_->range_min;
-    scan.range_max = scan_->range_max;
-    scan.ranges = scan_->ranges;
-    scan.intensities = scan_->intensities;
+    scan = *scan_;
+    scan_received = true;
 }
 
 // Convert Quaternion to Euler angles
@@ -75,15 +67,15 @@ void geometry_quat_to_rpy(double &roll, double &pitch, double &yaw, geometry_msg
 void follow_line(double x, double y, double th)
 {
     // Gains for line following
-    double k_eta = 900.00000000 / 10000;
-    double k_phai = 400.00000000 / 10000;
-    double k_w = 300.00000000 / 10000;
+    double k_eta = 0.09;
+    double k_phai = 0.04;
+    double k_w = 0.03;
 
     // Maximum velocity and angular velocity of the robot
-    double v_max = 1.00000000;
-    double w_max = 6.28000000;
+    double v_max = 0.5;
+    double w_max = 1.0;
 
-    // Distance between the robot and the line (actually clipped if above a certain distance)
+    // Distance between the robot and the line (clipped if above a certain distance)
     double eta = 0;
     if (th == M_PI / 2.0)
         eta = -(robot_x - x);
@@ -93,19 +85,20 @@ void follow_line(double x, double y, double th)
         eta = (-tan(th) * robot_x + robot_y - y + x * tan(th)) / sqrt(tan(th) * tan(th) + 1);
     else
         eta = -(-tan(th) * robot_x + robot_y - y + x * tan(th)) / sqrt(tan(th) * tan(th) + 1);
-    if (eta > 0.40000000)
-        eta = 0.40000000;
-    else if (eta < -0.40000000)
-        eta = -0.40000000;
+
+    if (eta > 0.4)
+        eta = 0.4;
+    else if (eta < -0.4)
+        eta = -0.4;
 
     // Robot's orientation relative to the line (kept within -M_PI to M_PI)
     double phai = yaw - th;
     while (phai <= -M_PI || M_PI <= phai)
     {
         if (phai <= -M_PI)
-            phai = phai + 2 * M_PI;
+            phai += 2 * M_PI;
         else
-            phai = phai - 2 * M_PI;
+            phai -= 2 * M_PI;
     }
 
     // Difference between the target angular velocity and current angular velocity
@@ -136,98 +129,83 @@ void follow_line(double x, double y, double th)
     w0 = twist.angular.z;
 }
 
-int near_position(geometry_msgs::PoseStamped goal)
+// Check if the robot is near the goal position
+bool near_position(geometry_msgs::PoseStamped goal)
 {
     double difx = robot_x - goal.pose.position.x;
     double dify = robot_y - goal.pose.position.y;
     return (sqrt(difx * difx + dify * dify) < 0.1);
 }
 
-void rotation()
+// Obstacle avoidance behavior
+void avoid_obstacle()
 {
-    // Calculate the current roll, pitch, yaw of the robot
-    geometry_quat_to_rpy(roll, pitch, yaw, robot_r);
+    // Parameters for obstacle avoidance
+    double obstacle_distance_threshold = 0.5;
+    double safe_distance = 0.6;
+    double angular_speed = 0.5;
+    double linear_speed = 0.1;
 
-    twist.linear.x = 0.0;
-    twist.linear.y = 0.0;
-    twist.linear.z = 0.0;
-    twist.angular.x = 0.0;
-    twist.angular.y = 0.0;
-    twist.angular.z = 0.0;
-    ROS_INFO("rotate in");
-
-    if (-0.1 < yaw && yaw < -0.01)
-    {
-        flag = 1;
-    }
-    else if (-0.01 <= yaw && flag == 1)
-    {
-        flag = 0;
-        count++; // Number of rotations
-        ROS_INFO("count++");
-    }
-
-    if (count >= 1)
-    {
-        twist.angular.z = 0.0;
-    }
-}
-
-void get_obj_data()
-{
-    // Update objects obstacle data in the world
-    double min_distance1 = std::numeric_limits<double>::infinity();
-    double angle_of_closest1;
-    bool found1 = false;
+    // Find the direction with the maximum clearance
+    int min_index = -1;
+    double min_distance = std::numeric_limits<double>::infinity();
 
     for (int i = 0; i < scan.ranges.size(); ++i)
     {
-        double distance1 = scan.ranges[i];
-        if (distance1 >= 0.2 && distance1 < 0.5)
+        double distance = scan.ranges[i];
+        if (distance < min_distance)
         {
-            if (distance1 < min_distance1)
-            {
-                min_distance1 = distance1;
-                angle_of_closest1 = scan.angle_min + i * scan.angle_increment;
-                found1 = true;
-            }
+            min_distance = distance;
+            min_index = i;
         }
     }
 
-    if (found1)
+    // Calculate the angle of the closest obstacle
+    double angle_of_closest = scan.angle_min + min_index * scan.angle_increment;
+
+    // Determine turning direction (turn away from obstacle)
+    if (angle_of_closest >= 0)
     {
-        double obstacle1_x = min_distance1 * cos(angle_of_closest1);
-        double obstacle1_y = min_distance1 * sin(angle_of_closest1);
+        // Obstacle is on the left, turn right
+        twist.angular.z = -angular_speed;
+    }
+    else
+    {
+        // Obstacle is on the right, turn left
+        twist.angular.z = angular_speed;
+    }
 
-        double world_obstacle1_x = 0;
-        double world_obstacle1_y = 0;
-        // Obstacle1 in the world (fixed)
-        world_obstacle1_x = robot_x + obstacle1_x * cos(yaw) - obstacle1_y * sin(yaw);
-        world_obstacle1_y = robot_y + obstacle1_x * sin(yaw) + obstacle1_y * cos(yaw);
+    // Move forward slowly
+    twist.linear.x = linear_speed;
+}
 
-        point1.x = world_obstacle1_x;
-        point1.y = world_obstacle1_y;
-        point1.z = 0.0;
+// Update obstacle detection flag
+void update_obstacle_flag()
+{
+    double obstacle_distance_threshold = 0.5;
+    get_obs_flag = false;
 
-        // Two point found flag
-        get_obs_flag = true;
+    for (int i = 0; i < scan.ranges.size(); ++i)
+    {
+        double distance = scan.ranges[i];
+        if (distance >= 0.2 && distance < obstacle_distance_threshold)
+        {
+            get_obs_flag = true;
+            break;
+        }
     }
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "openai_task_node");
+    ros::init(argc, argv, "dynamic_gpt_node");
     ros::NodeHandle nh;
     ros::Subscriber odom_sub = nh.subscribe("ypspur_ros/odom", 100, odom_callback);
     ros::Subscriber scan_sub = nh.subscribe("scan", 10, scanCallback);
-    ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel_source_normal", 100);
+    ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel_source_avoidance", 100);
 
-    // Wait 2 seconds for UGE sensor to work
-    int wait_start = 2;
-    ros::Time ros_start_time = ros::Time::now();
-    ros::Duration start_time(wait_start);
-    while (ros::Time::now() - ros_start_time < start_time)
-        ;
+    // Wait 2 seconds for sensors to initialize
+    ros::Duration(2.0).sleep();
     ROS_INFO("Waited 2s.");
 
     robot_x = 0.0;
@@ -244,7 +222,7 @@ int main(int argc, char **argv)
     twist.angular.y = 0.0;
     twist.angular.z = 0.0;
 
-    ros::Rate loop_rate(100);
+    ros::Rate loop_rate(50);
 
     // Velocity
     v0 = 0.2;
@@ -255,37 +233,49 @@ int main(int argc, char **argv)
     double y = 0.0;
     double theta = 0.0;
     bool obstacle_detected = false;
-    bool first_time = true;
-    bool first_arrive=true;
+    bool first_get=true;
 
     // Final Goal
     goal.pose.position.x = 5.0;
     goal.pose.position.y = 0.0;
-    
+
     auto last_move_log_time = std::chrono::steady_clock::now();
 
     while (ros::ok())
     {
         ros::spinOnce();
+
+        if (!scan_received)
+        {
+            // Wait until scan data is received
+            loop_rate.sleep();
+            continue;
+        }
+
         geometry_quat_to_rpy(roll, pitch, yaw, robot_r);
 
-        get_obj_data();
-        if (get_obs_flag)
-        {
-            obstacle_detected = true;
-        }
-        else
-        {
-            obstacle_detected = false;
-        }
+        update_obstacle_flag();
+        obstacle_detected = get_obs_flag;
         get_obs_flag = false;
+
+        if (near_position(goal))
+        {
+            twist.linear.x = 0.0;
+            twist.angular.z = 0.0;
+            twist_pub.publish(twist);
+            if(first_get){
+                ROS_INFO("Arrived at goal.");
+                first_get=false;
+            }
+            break; // Exit the loop
+        }
 
         if (!obstacle_detected)
         {
             // When the robot starts to move after encountering an obstacle
             if (in_stop_state)
             {
-                ROS_INFO("Robot starts moving.");
+                ROS_INFO("Obstacle avoided. Resuming navigation.");
                 in_stop_state = false; // Reset stop state flag
             }
 
@@ -297,57 +287,28 @@ int main(int argc, char **argv)
                 last_move_log_time = current_time; // Update the last log time
             }
 
-            x = 0;
-            y = 0;
-            theta = 0;
+            x = goal.pose.position.x;
+            y = goal.pose.position.y;
+            theta = atan2(y - robot_y, x - robot_x);
             follow_line(x, y, theta);
         }
         else
         {
-            // Log when the robot encounters an obstacle and stops
+            // Log when the robot encounters an obstacle and starts avoidance
             if (!in_stop_state)
             {
-                ROS_WARN("Obstacle detected. Robot stopping.");
+                ROS_WARN("Obstacle detected. Initiating avoidance maneuver.");
                 in_stop_state = true;
-                stop_start_time = std::chrono::steady_clock::now(); // Start timing stop state
-            }
-            else
-            {
-                // Check if stop duration exceeds 20 seconds
-                auto stop_duration = std::chrono::steady_clock::now() - stop_start_time;
-                if (std::chrono::duration_cast<std::chrono::seconds>(stop_duration).count() > 20)
-                {
-                    if (first_time){
-                        ROS_WARN("Robot stop timeout");
-                        ROS_WARN("Robot Current Position: (%.2f, %.2f)", robot_x, robot_y);
-                        first_time=false;
-                    }
-
-                }
             }
 
-            // Stop state
-            twist.linear.x = 0.0;
-            twist.linear.y = 0.0;
-            twist.linear.z = 0.0;
-            twist.angular.x = 0.0;
-            twist.angular.y = 0.0;
-            twist.angular.z = 0.0;
-        }
-
-        if (near_position(goal))
-        {
-            twist.linear.x = 0.0;
-            twist.angular.z = 0.0;
-            if (first_arrive){
-                ROS_INFO("Arrived at goal.");
-                first_arrive=false;
-            }
+            // Obstacle avoidance behavior
+            avoid_obstacle();
         }
 
         twist_pub.publish(twist);
         loop_rate.sleep();
     }
 
+    ROS_INFO("Navigation completed.");
     return 0;
 }

@@ -124,7 +124,8 @@ if __name__ == '__main__':
 
 def run_avoidance_node():
     """Run the dynamically written obstacle avoidance node."""
-    return subprocess.Popen(["python3", "/home/ruan-x/midTask/src/openai_test/script/avoid_obstacle.py"])
+    # return subprocess.Popen(["python3", "/home/ruan-x/midTask/src/openai_test/script/avoid_obstacle.py"])
+    return subprocess.Popen(["rosrun", "openai_test", "dynamic_gpt_new"])
 
 def switch_control(source_topic):
     """Call the service to switch the control source of /cmd_vel."""
@@ -159,11 +160,11 @@ def main():
     while not rospy.is_shutdown():
         if check_robot_movement():  # Only check if no avoidance process is running
             if avoidance_node is None:
-                print("Robot stopped for more than 20seconds. Writing and running obstacle avoidance script...")
-                if firsttime:
-                    write_avoidance_script()
-                    print("write AI code finished")
-                    firsttime = False
+                print("Robot stopped for more than 20 seconds. Writing and running obstacle avoidance script...")
+                # if firsttime:
+                #     write_avoidance_script()
+                #     print("write AI code finished")
+                #     firsttime = False
                 avoidance_node = run_avoidance_node()
 
                 # add circle here to confirm and regenearate new code

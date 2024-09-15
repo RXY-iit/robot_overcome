@@ -2,7 +2,7 @@
     <!-- Yamabiko -->
     <node pkg="ypspur_ros" type="ypspur_ros" name="ypspur_ros">
         <param name="param_file" value="/home/ruan-x/researches/programs/platform/yp-robot-params/robot-params/speego.param" />
-        <param name="port" value="/dev/ttyACM1" />
+        <param name="port" valuez>
     </node>
     
     <!-- urg -->

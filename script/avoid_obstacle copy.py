@@ -1,13 +1,8 @@
-import sys
+
 import rospy
-# Ensure the path is added
-sys.path.append('/home/ruan-x/midTask/devel/lib/python3/dist-packages')
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
-# from std_srvs.srv import Empty, EmptyResponse  # Replace with your actual service if needed
-from openai_test.srv import SelectTopic, SelectTopicResponse
-# from openai_test.srv import SelectTopic
-# from std_srvs.srv import SelectTopic, SelectTopicResponse 
+import math
 
 # Global variable to track if no obstacle is detected
 no_obstacle_detected = False
@@ -53,28 +48,11 @@ def scan_callback(scan_data):
         no_obstacle_detected = False
     else:
         twist.linear.x = 0.1  # Move forward if no obstacle within 50 cm
-        twist.angular.z = 0.0
+        twist.angular.z = 0.2
         if min(scan_data.ranges) >= 0.5:
             no_obstacle_detected = True
 
     twist_pub.publish(twist)
-
-
-def switch_control(source_topic):
-    """Call the service to switch the control source of /cmd_vel."""
-    rospy.wait_for_service('/cmd_vel_mux/select')
-    try:
-        # Create a service proxy for the /cmd_vel_mux/select service
-        select_srv = rospy.ServiceProxy('/cmd_vel_mux/select', SelectTopic)
-        # Call the service with the desired topic
-        resp = select_srv(source_topic)
-        if resp.success:
-            rospy.loginfo(f"Successfully switched to {source_topic}")
-        else:
-            rospy.logwarn(f"Failed to switch to {source_topic}")
-    except rospy.ServiceException as e:
-        rospy.logerr(f"Service call failed: {e}")
-
 
 def main():
     global twist_pub
@@ -86,9 +64,6 @@ def main():
     twist_pub = rospy.Publisher('/cmd_vel_source_avoidance', Twist, queue_size=10)
     
     rospy.Subscriber('/scan', LaserScan, scan_callback)
-
-    # Switch to obstacle avoidance control
-    switch_control('/cmd_vel_source_avoidance')
     
     rate = rospy.Rate(10)  # 10 Hz loop rate
     while not rospy.is_shutdown():
@@ -98,3 +73,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
