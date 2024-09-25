@@ -3,6 +3,10 @@ import time
 import subprocess
 import rospy
 from geometry_msgs.msg import Twist
+# this is the project to repalce the old cript with new created one
+# then exit and recompile the whole workspace
+# problem: restart takes long time
+#          recording robot current state still need to modify
 
 def start_roslaunch():
     """Start the ROS launch with the necessary nodes."""

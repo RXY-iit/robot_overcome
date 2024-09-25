@@ -9,6 +9,9 @@ from topic_tools.srv import MuxSelect
 import sys
 from openai_test.srv import SelectTopic, SelectTopicResponse
 
+# this is a project to switch project between old and new genarated one
+# tips: recompile the workspace is not nesseray
+
 def start_roslaunch():
     """Start the ROS launch with the necessary nodes."""
     os.chdir('/home/ruan-x/midTask')
@@ -40,87 +43,88 @@ def print_time_count():
         elapsed_time = current_time - last_velocity_time
         print(f"Current time count since last movement: {elapsed_time:.2f} seconds")
 
-def write_avoidance_script():
-    """Dynamically write the obstacle avoidance code to a new Python file."""
-    avoidance_code = """
-import rospy
-from geometry_msgs.msg import Twist
-from sensor_msgs.msg import LaserScan
-import math
+# # not in use funciton
+# def write_avoidance_script():
+#     """Dynamically write the obstacle avoidance code to a new Python file."""
+#     avoidance_code = """
+# import rospy
+# from geometry_msgs.msg import Twist
+# from sensor_msgs.msg import LaserScan
+# import math
 
-# Global variable to track if no obstacle is detected
-no_obstacle_detected = False
+# # Global variable to track if no obstacle is detected
+# no_obstacle_detected = False
 
-# Publisher initialization
-twist_pub = None
+# # Publisher initialization
+# twist_pub = None
 
-def scan_callback(scan_data):
-    global no_obstacle_detected, twist_pub
-    twist = Twist()
+# def scan_callback(scan_data):
+#     global no_obstacle_detected, twist_pub
+#     twist = Twist()
 
-    # Check if scan data is available
-    if not scan_data.ranges:
-        rospy.logwarn("Scan data is empty!")
-        return
+#     # Check if scan data is available
+#     if not scan_data.ranges:
+#         rospy.logwarn("Scan data is empty!")
+#         return
 
-    # Initialize variables for obstacle detection
-    min_distance_front = float('inf')
-    found_obstacle = False
+#     # Initialize variables for obstacle detection
+#     min_distance_front = float('inf')
+#     found_obstacle = False
 
-    num_ranges = len(scan_data.ranges)
+#     num_ranges = len(scan_data.ranges)
 
-    # Calculate the indices for the front 60 degrees of the scan
-    front_min_index = num_ranges // 3
-    front_max_index = num_ranges * 2 // 3
+#     # Calculate the indices for the front 60 degrees of the scan
+#     front_min_index = num_ranges // 3
+#     front_max_index = num_ranges * 2 // 3
 
-    # Clamp indices to valid range
-    front_min_index = max(0, front_min_index)
-    front_max_index = min(num_ranges - 1, front_max_index)
+#     # Clamp indices to valid range
+#     front_min_index = max(0, front_min_index)
+#     front_max_index = min(num_ranges - 1, front_max_index)
 
-    # Scan through the range around the center
-    for i in range(front_min_index, front_max_index + 1):
-        distance = scan_data.ranges[i]
-        if 0.2 <= distance < 0.5:
-            if distance < min_distance_front:
-                min_distance_front = distance
-                found_obstacle = True
+#     # Scan through the range around the center
+#     for i in range(front_min_index, front_max_index + 1):
+#         distance = scan_data.ranges[i]
+#         if 0.2 <= distance < 0.5:
+#             if distance < min_distance_front:
+#                 min_distance_front = distance
+#                 found_obstacle = True
 
-    # Obstacle avoidance logic based on the front range
-    if found_obstacle and min_distance_front < 0.5:
-        twist.linear.x = 0.0
-        twist.angular.z = 0.2  # Rotate to avoid obstacle
-        no_obstacle_detected = False
-    else:
-        twist.linear.x = 0.1  # Move forward if no obstacle within 50 cm
-        twist.angular.z = 0.2
-        if min(scan_data.ranges) >= 0.5:
-            no_obstacle_detected = True
+#     # Obstacle avoidance logic based on the front range
+#     if found_obstacle and min_distance_front < 0.5:
+#         twist.linear.x = 0.0
+#         twist.angular.z = 0.2  # Rotate to avoid obstacle
+#         no_obstacle_detected = False
+#     else:
+#         twist.linear.x = 0.1  # Move forward if no obstacle within 50 cm
+#         twist.angular.z = 0.2
+#         if min(scan_data.ranges) >= 0.5:
+#             no_obstacle_detected = True
 
-    twist_pub.publish(twist)
+#     twist_pub.publish(twist)
 
-def main():
-    global twist_pub
-    global no_obstacle_detected
+# def main():
+#     global twist_pub
+#     global no_obstacle_detected
 
-    rospy.init_node('avoid_obstacle')
+#     rospy.init_node('avoid_obstacle')
 
-    # Initialize the publisher here
-    twist_pub = rospy.Publisher('/cmd_vel_source_avoidance', Twist, queue_size=10)
+#     # Initialize the publisher here
+#     twist_pub = rospy.Publisher('/cmd_vel_source_avoidance', Twist, queue_size=10)
     
-    rospy.Subscriber('/scan', LaserScan, scan_callback)
+#     rospy.Subscriber('/scan', LaserScan, scan_callback)
     
-    rate = rospy.Rate(10)  # 10 Hz loop rate
-    while not rospy.is_shutdown():
-        if no_obstacle_detected:  # Terminate if nothing is within 50 cm
-            rospy.signal_shutdown("No obstacle within 50 cm. Avoidance complete.")
-        rate.sleep()
+#     rate = rospy.Rate(10)  # 10 Hz loop rate
+#     while not rospy.is_shutdown():
+#         if no_obstacle_detected:  # Terminate if nothing is within 50 cm
+#             rospy.signal_shutdown("No obstacle within 50 cm. Avoidance complete.")
+#         rate.sleep()
 
-if __name__ == '__main__':
-    main()
-    """
+# if __name__ == '__main__':
+#     main()
+#     """
 
-    with open('/home/ruan-x/midTask/src/openai_test/script/avoid_obstacle.py', 'w') as f:
-        f.write(avoidance_code)
+#     with open('/home/ruan-x/midTask/src/openai_test/script/avoid_obstacle.py', 'w') as f:
+#         f.write(avoidance_code)
 
 def run_avoidance_node():
     """Run the dynamically written obstacle avoidance node."""
