@@ -7,18 +7,14 @@ This repository accompanies the paper under review titled "Are We Close to Reali
 
 1. **First Scenario: Default Environment and Robot Behavior**
 
-   <div align="center">
-     <iframe width="560" height="315" src="https://www.youtube.com/embed/hwbhQHJ-iIg" frameborder="0" allowfullscreen></iframe>
-   </div>
+[![Watch the video](https://img.youtube.com/vi/hwbhQHJ-iIg/maxresdefault.jpg)](https://youtu.be/hwbhQHJ-iIg)
    
    - In this video, the robot follows its pre-programmed path until it encounters an obstacle. The robot halts after detecting the object and, since it is not removed, it reaches the 20-second timeout. After the timeout, the o1-preview model-generated code is executed, enabling the robot to autonomously navigate around the obstacle and reach its goal.
 
 2. **Second and Third Scenarios: Different Obstacle Placements**
 
-   <div style="display: flex; justify-content: space-between;">
-     <iframe width="280" height="158" src="https://www.youtube.com/embed/57eOCXrZY-0" frameborder="0" allowfullscreen></iframe>
-     <iframe width="280" height="158" src="https://www.youtube.com/embed/-Dj_W1FMp8s" frameborder="0" allowfullscreen></iframe>
-   </div>
+   [![Watch the video](https://img.youtube.com/vi/57eOCXrZY-0/maxresdefault.jpg)](https://youtu.be/57eOCXrZY-0)  
+   [![Watch the video](https://img.youtube.com/vi/-Dj_W1FMp8s/maxresdefault.jpg)](https://youtu.be/-Dj_W1FMp8s)
 
    - These two videos demonstrate the same generated code from the o1-preview model applied to two different obstacle setups. In both cases, the robot successfully avoids the obstacles and completes the task, highlighting the flexibility of the generated solution.
 
