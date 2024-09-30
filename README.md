@@ -3,14 +3,6 @@
 
 This repository accompanies the paper under review titled "Are We Close to Realizing Self-Programming Robots That Overcome the Unexpected?" In this work, we are exploring how robots equipped with Large Language Models (LLMs) can autonomously modify their operational code in response to unforeseen challenges during task execution. Specifically, we investigate how the OpenAI o1-preview model enables a mobile robot to analyze failure scenarios and autonomously generate new code to successfully overcome obstacles without human intervention.
 
-## Overview
-
-This repository contains:
-
-- **Demonstration videos** showcasing the robot's behavior using the o1-preview model-generated code.
-- **Code and outputs** for both the o1-preview and GPT-4o models.
-- **Input prompts** and full model outputs demonstrating the autonomous reasoning and code generation process.
-
 ### Video Demonstrations
 
 1. **[First Scenario: Default Environment and Robot Behavior](https://youtu.be/hwbhQHJ-iIg)**
