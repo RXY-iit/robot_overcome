@@ -13,9 +13,15 @@ This repository accompanies the paper under review titled "Are We Close to Reali
 
 2. **Second and Third Scenarios: Different Obstacle Placements**
 
-   [![Watch the video](https://img.youtube.com/vi/57eOCXrZY-0/maxresdefault.jpg)](https://youtu.be/57eOCXrZY-0)  
-   [![Watch the video](https://img.youtube.com/vi/-Dj_W1FMp8s/maxresdefault.jpg)](https://youtu.be/-Dj_W1FMp8s)
-
+   <div style="display: flex; justify-content: space-between;">
+      <a href="https://youtu.be/57eOCXrZY-0" target="_blank">
+         <img src="https://img.youtube.com/vi/57eOCXrZY-0/maxresdefault.jpg" alt="Watch the video" style="width:48%;"/>
+      </a>
+      <a href="https://youtu.be/-Dj_W1FMp8s" target="_blank">
+         <img src="https://img.youtube.com/vi/-Dj_W1FMp8s/maxresdefault.jpg" alt="Watch the video" style="width:48%;"/>
+      </a>
+   </div>
+   
    - These two videos demonstrate the same generated code from the o1-preview model applied to two different obstacle setups. In both cases, the robot successfully avoids the obstacles and completes the task, highlighting the flexibility of the generated solution.
 
 ### Full Inputs and Outputs
